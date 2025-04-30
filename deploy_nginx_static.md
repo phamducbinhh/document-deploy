@@ -98,7 +98,7 @@ sudo apt install nginx
 
 ```bash
 sudo mkdir -p /var/www/dev-static/html
-sudo cp -r /home/dev/deploy-vps-landing/* /var/www/dev-static/html
+sudo cp -r /home/dev/deploy-portfolio/dist/* /var/www/dev-static/html
 ```
 
 ### ✅ Bước 3: Cấu hình Nginx
