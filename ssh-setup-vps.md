@@ -67,6 +67,23 @@ Sau đó **khởi động lại dịch vụ SSH**:
 sudo systemctl restart ssh
 ```
 
+---
+
+## 5. cấu hình config SSH
+
+```bash
+sudo nano /etc/ssh/config
+```
+
+sau đó copy file config với name `my-vps`
+
+`Host my-vps
+  HostName 103.140.249.25
+  User dev
+  IdentityFile ~/.ssh/phamducbinh`
+
+> Sau đó sử dụng lệnh `ssh my-vps` đăng nhập với key `~/.ssh/phamducbinh`
+
 > ⚠️ _Chỉ làm bước này nếu bạn đã chắc chắn đăng nhập được bằng SSH key, kẻo bị khóa luôn!_
 
 ---
