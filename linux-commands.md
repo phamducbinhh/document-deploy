@@ -1,71 +1,74 @@
-## Linux cơ bản
+## --- THÔNG TIN HỆ THỐNG ---
+# Kiểm tra RAM
+free -h
 
-Tình trạng RAM: free -h
-Tình trạng DISK: df -h
-Tạo file: touch file.txt
-Tạo thư mục: mkdir folder
-Di chuyển: cd folder
-Xem danh sách file: ls
-Xem danh sách file ẩn: ls -a
-Xem nội dung file: cat file.txt
-Copy file: cp file.txt file2.txt
-Xóa file: rm file.txt
-Xóa thư mục: rm -r folder
-Xóa folder và tất cả nội dung bên trong mà không cần xác nhận: rm -rf folder
-Edit file: nano file.txt
-kill all port 3000: lsof -i:3000 / kill -9 PID
+# Kiểm tra ổ đĩa
+df -h
 
-# Kiểm tra trạng thái tường lửa (nếu bật thì sẽ show port mở)
+# Kiểm tra swap đang hoạt động
+sudo swapon --show
+sudo free -h
 
+## --- QUẢN LÝ FILE & THƯ MỤC ---
+# Tạo file và thư mục
+touch file.txt
+mkdir folder
+
+# Di chuyển vào thư mục
+cd folder
+
+# Xem danh sách file
+ls
+ls -a         # Bao gồm file ẩn
+
+# Xem nội dung file
+cat file.txt
+
+# Chỉnh sửa file
+nano file.txt
+
+# Copy, xóa file
+cp file.txt file2.txt
+rm file.txt
+
+# Xóa thư mục (và tất cả nội dung)
+rm -r folder
+rm -rf folder    # Không cần xác nhận
+
+## --- MẠNG & PORT ---
+# Kill tiến trình dùng port 3000
+lsof -i:3000
+kill -9 PID
+
+## --- TƯỜNG LỬA UFW ---
+# Kiểm tra trạng thái UFW
 sudo ufw status
 
-# Bật tường lửa, nhưng cái này chỉ bật trong phiên làm việc hiện tại thôi, reboot là nó tự tắt
-
+# Bật UFW (tạm thời)
 sudo ufw enable
 
-# Yêu cầu tường lửa lên mỗi khi khởi động lại server
-
+# Tự động bật UFW khi khởi động
 sudo systemctl enable ufw
 
-# Mở port 22 (ssh), Nginx Full mở rồi không cần mở lại
+# Mở port
+sudo ufw allow ssh     # Port 22
+sudo ufw allow 3000    # Port 3000
 
-sudo ufw allow ssh
-
-# Mở port 3000
-
-sudo ufw allow 3000
-
-# restart ubuntu
-
-sudo reboot
-
-# Đóng port 4000
-
+# Đóng port
 sudo ufw delete allow 4000
 
-## Tăng 1GB Ram ảo
+## --- HỆ THỐNG ---
+# Khởi động lại máy
+sudo reboot
 
-## Tạo một file swap mới:
-
+## --- TẠO SWAP (RAM ẢO) ---
+# Tạo và kích hoạt 1GB swap
 sudo fallocate -l 1G /swapfile
-
-# Thiết lập quyền truy cập cho file swap:
-
 sudo chmod 600 /swapfile
-
-# Đánh dấu file là một không gian swap:
-
 sudo mkswap /swapfile
-
-# Kích hoạt swap file:
-
 sudo swapon /swapfile
 
-# Mở file /etc/fstab để dán đoạn này vào `/swapfile swap swap defaults 0 0`
-
+# Gắn vào fstab để tự động bật khi reboot
 sudo nano /etc/fstab
-
-# Xác nhận swap đã được kích hoạt:
-
-sudo swapon --show
-sudo free -h</code></pre>
+# Thêm dòng sau vào cuối file:
+/swapfile swap swap defaults 0 0
