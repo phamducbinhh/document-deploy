@@ -1,67 +1,123 @@
-# Hướng dẫn sử dụng SSH Key để đăng nhập vào VPS
+
+# 🧠 Hướng dẫn sử dụng SSH Key để đăng nhập vào VPS
+
+## VPS: `vmadmin@ip_address`
+
+---
 
 ## 1. Tạo SSH Key (nếu chưa có)
 
-Trên máy **local (máy bạn)**, mở Terminal và gõ:
+Trên **máy local**, mở Terminal và chạy:
 
 ```bash
 ssh-keygen -t ed25519 -C "your_email@example.com"
 ```
 
-- Khi được hỏi lưu ở đâu → nhấn Enter (mặc định là `~/.ssh/id_ed25519`)
-- Kết quả: tạo ra 2 file:
+- Khi được hỏi nơi lưu → nhấn **Enter** để dùng mặc định `~/.ssh/id_ed25519`
+- Kết quả:
   - `~/.ssh/id_ed25519`: **private key**
   - `~/.ssh/id_ed25519.pub`: **public key**
 
 ---
+- copy public key vao authorized_keys vps -> ssh -i ~/.ssh/id_ed25519.pub vmadmin@ip_address (dang nhap vao vps)
 
-## 2. Copy SSH Public Key lên VPS
+## 2. (Tùy chọn) Tạo user mới trên VPS
 
-Dùng lệnh sau (thay `username` và `ip_address` bằng thông tin VPS của bạn):
+> Khuyến khích KHÔNG dùng `root` hoặc user mặc định như `vmadmin` cho SSH chính.
+
+Đăng nhập vào VPS bằng tài khoản gốc (có sẵn):
 
 ```bash
-ssh-copy-id -i ~/.ssh/id_ed25519.pub username@ip_address
+ssh vmadmin@ip_address
+```
+
+Sau đó, tạo user mới (ví dụ: `dev`):
+
+```bash
+sudo adduser dev
+```
+
+Thêm user mới vào nhóm `sudo` (nếu cần quyền root):
+
+```bash
+sudo usermod -aG sudo dev
+```
+
+---
+
+## 3. Copy SSH Public Key lên VPS
+
+Từ **máy local**, dùng lệnh sau (thay `dev` và `ip_address`):
+
+```bash
+ssh-copy-id -i ~/.ssh/id_ed25519.pub dev@ip_address
 ```
 
 > Lệnh này sẽ:
->
 > - Tạo thư mục `~/.ssh` trên VPS (nếu chưa có)
-> - Copy nội dung `id_ed25519.pub` vào `~/.ssh/authorized_keys` trên VPS
+> - Ghi public key vào `~/.ssh/authorized_keys`
 
 ---
 
-## 3. SSH vào VPS bằng Key
+## 4. SSH vào VPS bằng Key
 
-Giờ bạn có thể đăng nhập VPS mà không cần mật khẩu:
-
-```bash
-ssh username@ip_address
-```
+Giờ bạn có thể đăng nhập:
 
 ```bash
-ssh -i ~/.ssh/key username@ip_address
+ssh dev@ip_address
 ```
 
-> SSH sẽ tự dùng khóa `id_ed25519` mặc định để xác thực.
+Hoặc chỉ định file key cụ thể:
+
+```bash
+ssh -i ~/.ssh/id_ed25519 dev@ip_address
+```
 
 ---
 
-## 4. (Tùy chọn) Tắt đăng nhập bằng mật khẩu (chỉ dùng key)
+## 5. (Tùy chọn) Cấu hình file `~/.ssh/config` (trên máy local)
 
-Trên VPS, mở file cấu hình SSH:
+Tạo hoặc sửa file:
+
+```bash
+nano ~/.ssh/config
+```
+
+Thêm cấu hình sau:
+
+```bash
+Host my-vps
+  HostName ip_address
+  User dev
+  IdentityFile ~/.ssh/id_ed25519
+```
+
+> Sau đó, chỉ cần gõ:
+>
+> ```bash
+> ssh my-vps
+> ```
+
+---
+
+## 6. (Tùy chọn) Vô hiệu hóa đăng nhập bằng mật khẩu (chỉ dùng SSH Key)
+
+⚠️ **Chỉ làm bước này nếu bạn đã xác thực thành công bằng key!**
+
+Trên VPS:
 
 ```bash
 sudo nano /etc/ssh/sshd_config
 ```
 
-Tìm và sửa:
+Tìm và chỉnh sửa (nếu chưa đúng):
 
 ```
 PasswordAuthentication no
 PubkeyAuthentication yes
 ```
 
-Sau đó **khởi động lại dịch vụ SSH**:
+Khởi động lại dịch vụ SSH:
 
 ```bash
 sudo systemctl restart ssh
@@ -69,31 +125,16 @@ sudo systemctl restart ssh
 
 ---
 
-## 5. cấu hình config SSH
-
-```bash
-sudo nano /etc/ssh/config
-```
-
-sau đó copy file config với name `my-vps`
-
-`Host my-vps
-  HostName 103.140.249.25
-  User dev
-  IdentityFile ~/.ssh/phamducbinh`
-
-> Sau đó sử dụng lệnh `ssh my-vps` đăng nhập với key `~/.ssh/phamducbinh`
-
-> ⚠️ _Chỉ làm bước này nếu bạn đã chắc chắn đăng nhập được bằng SSH key, kẻo bị khóa luôn!_
-
----
-
 ## ✅ Tổng kết các lệnh
 
-| Lệnh                                                       | Mục đích                    |
-| ---------------------------------------------------------- | --------------------------- |
-| `ssh-keygen -t ed25519 -C "your_email"`                    | Tạo SSH key                 |
-| `ssh-copy-id -i ~/.ssh/id_ed25519.pub username@ip_address` | Copy public key lên VPS     |
-| `ssh username@ip_address`                                  | Đăng nhập vào VPS bằng key  |
-| `sudo nano /etc/ssh/sshd_config`                           | Tắt đăng nhập bằng mật khẩu |
-| `sudo systemctl restart ssh`                               | Khởi động lại SSH service   |
+| Lệnh                                                       | Mục đích                         |
+| ---------------------------------------------------------- | -------------------------------- |
+| `ssh-keygen -t ed25519 -C "email"`                         | Tạo SSH key                      |
+| `ssh vmadmin@ip_address`                                   | Đăng nhập VPS lần đầu            |
+| `sudo adduser dev`                                         | Tạo user mới                     |
+| `sudo usermod -aG sudo dev`                                | Cho user mới quyền sudo          |
+| `ssh-copy-id -i ~/.ssh/id_ed25519.pub dev@ip_address`      | Copy public key lên VPS          |
+| `ssh dev@ip_address`                                       | Đăng nhập vào VPS bằng key       |
+| `nano ~/.ssh/config`                                       | Cấu hình shortcut SSH            |
+| `sudo nano /etc/ssh/sshd_config`                           | Vô hiệu hóa login bằng mật khẩu  |
+| `sudo systemctl restart ssh`                               | Restart dịch vụ SSH              |
