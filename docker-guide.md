@@ -40,7 +40,12 @@ sudo apt-get update
 sudo apt-get install docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
 ```
 
-### Bước 5: Kiểm tra Docker
+### Bước 5: Cho phép chạy Docker không cần sudo
+```bash
+sudo usermod -aG docker $USER
+newgrp docker
+```
+### Bước 6: Kiểm tra Docker
 ```bash
 sudo docker version
 sudo docker run hello-world
