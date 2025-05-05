@@ -1,4 +1,50 @@
 
+## Cài Đặt Docker và Docker Compose Trên Ubuntu
+
+### Bước 1: Cập nhật hệ thống
+```bash
+sudo apt update
+sudo apt upgrade -y
+```
+
+### Bước 2: Gỡ phiên bản Docker cũ (nếu có)
+```bash
+sudo apt remove docker docker-engine docker.io containerd runc
+```
+
+### Bước 3: Cài đặt các gói phụ trợ
+```bash
+sudo apt install ca-certificates curl gnupg lsb-release -y
+```
+
+### Bước 4: Thêm Docker GPG key và repo
+```bash
+sudo mkdir -p /etc/apt/keyrings
+curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /etc/apt/keyrings/docker.gpg
+
+echo   "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg]   https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable" |   sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
+```
+
+### Bước 5: Cài Docker Engine
+```bash
+sudo apt update
+sudo apt install docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin -y
+```
+
+### Bước 6: Kiểm tra Docker
+```bash
+sudo docker version
+sudo docker run hello-world
+```
+
+### Bước 7: Cài Docker Compose (nếu cần riêng)
+```bash
+sudo curl -L "https://github.com/docker/compose/releases/latest/download/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
+sudo chmod +x /usr/local/bin/docker-compose
+docker-compose version
+```
+
+
 # Hướng Dẫn Docker: Lệnh Cơ Bản và Triển Khai Ứng Dụng
 
 Tài liệu này cung cấp hướng dẫn toàn diện về các lệnh Docker cơ bản và cách triển khai ứng dụng với Docker.
