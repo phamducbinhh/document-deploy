@@ -18,38 +18,33 @@ sudo rm /etc/apt/sources.list.d/docker.list
 sudo rm /etc/apt/keyrings/docker.asc
 ```
 
-### Bước 3: Cài đặt các gói phụ trợ
+### Bước 3: Cài Docker Engine
 ```bash
-sudo apt install ca-certificates curl gnupg lsb-release -y
+# Add Docker's official GPG key:
+sudo apt-get update
+sudo apt-get install ca-certificates curl
+sudo install -m 0755 -d /etc/apt/keyrings
+sudo curl -fsSL https://download.docker.com/linux/ubuntu/gpg -o /etc/apt/keyrings/docker.asc
+sudo chmod a+r /etc/apt/keyrings/docker.asc
+
+# Add the repository to Apt sources:
+echo \
+  "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.asc] https://download.docker.com/linux/ubuntu \
+  $(. /etc/os-release && echo "${UBUNTU_CODENAME:-$VERSION_CODENAME}") stable" | \
+  sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
+sudo apt-get update
 ```
 
-### Bước 4: Thêm Docker GPG key và repo
+### Bước 4: Cài Docker Packages.
 ```bash
-sudo mkdir -p /etc/apt/keyrings
-curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /etc/apt/keyrings/docker.gpg
-
-echo   "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg]   https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable" |   sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
+sudo apt-get install docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
 ```
 
-### Bước 5: Cài Docker Engine
-```bash
-sudo apt update
-sudo apt install docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin -y
-```
-
-### Bước 6: Kiểm tra Docker
+### Bước 5: Kiểm tra Docker
 ```bash
 sudo docker version
 sudo docker run hello-world
 ```
-
-### Bước 7: Cài Docker Compose (nếu cần riêng)
-```bash
-sudo curl -L "https://github.com/docker/compose/releases/latest/download/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
-sudo chmod +x /usr/local/bin/docker-compose
-docker-compose version
-```
-
 
 # Hướng Dẫn Docker: Lệnh Cơ Bản và Triển Khai Ứng Dụng
 
@@ -99,15 +94,15 @@ docker system prune -a --volumes
 
 ## Các Lệnh Docker Compose
 ```bash
-docker-compose up
-docker-compose up -d
-docker-compose down
-docker-compose down -v
-docker-compose build
-docker-compose logs
-docker-compose logs -f
-docker-compose ps
-docker-compose exec <ten_service> <lenh>
+docker compose up
+docker compose up -d
+docker compose down
+docker compose down -v
+docker compose build
+docker compose logs
+docker compose logs -f
+docker compose ps
+docker compose exec <ten_service> <lenh>
 ```
 
 ## Triển Khai Ứng Dụng Next.js với Docker
@@ -147,8 +142,6 @@ CMD ["node", "server.js"]
 
 ### docker-compose.yml
 ```yaml
-version: '3'
-
 services:
   nextjs:
     container_name: nextjs-app
