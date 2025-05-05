@@ -82,6 +82,7 @@ docker ps -a
 docker start <id_hoac_ten_container>
 docker stop <id_hoac_ten_container>
 docker rm <id_hoac_ten_container>
+docker rmi next-deploy-vps-nextjs:latest (xóa images)
 docker container prune
 docker run -d -p <cong_host>:<cong_container> --name <ten_container> <ten_image>:<tag>
 docker exec -it <id_hoac_ten_container> <lenh>
