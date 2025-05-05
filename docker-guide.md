@@ -182,13 +182,13 @@ module.exports = nextConfig
 1. Chuẩn bị ứng dụng
 2. Build và chạy ứng dụng
 ```bash
-docker-compose build
-docker-compose up -d
+docker compose build
+docker compose up -d
 ```
 3. Kiểm tra
 ```bash
-docker-compose ps
-docker-compose logs -f
+docker compose ps
+docker compose logs -f
 ```
 4. Truy cập http://localhost:3000
 
