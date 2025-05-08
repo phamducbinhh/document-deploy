@@ -7,6 +7,7 @@ SSH_DIR="$HOME/.ssh"
 CONFIG_FILE="$SSH_DIR/config"
 GITHUB_KEY="$SSH_DIR/github"
 GITLAB_KEY="$SSH_DIR/gitlab"
+GITLAB_OEG_KEY="$SSH_DIR/gitlab-oeg"
 
 # Màu cho thông báo
 GREEN='\033[0;32m'
@@ -25,11 +26,16 @@ ssh-keygen -t ed25519 -C "$EMAIL" -f "$GITHUB_KEY" -N ""
 echo -e "${GREEN}📁 Tạo SSH key cho GitLab...${NC}"
 ssh-keygen -t ed25519 -C "$EMAIL" -f "$GITLAB_KEY" -N ""
 
+# Tạo SSH key cho GitLab oeg
+echo -e "${GREEN}📁 Tạo SSH key cho GitLab OEG...${NC}"
+ssh-keygen -t ed25519 -C "$EMAIL" -f "$GITLAB_OEG_KEY" -N ""
+
 # Khởi động ssh-agent và thêm key
 echo -e "${GREEN}🚀 Thêm SSH key vào ssh-agent...${NC}"
 eval "$(ssh-agent -s)"
 ssh-add "$GITHUB_KEY"
 ssh-add "$GITLAB_KEY"
+ssh-add "$GITLAB_OEG_KEY"
 
 # Tạo hoặc chỉnh sửa file cấu hình SSH
 echo -e "${GREEN}⚙️  Cấu hình file ~/.ssh/config...${NC}"
@@ -50,7 +56,21 @@ Host gitlab.com
   User git
   IdentityFile $GITLAB_KEY
   IdentitiesOnly yes
-EOF
+  
+# GitLab
+Host gitlab.com
+  HostName gitlab.com
+  User git
+  IdentityFile $GITLAB_KEY
+  IdentitiesOnly yes
+
+# GitLab OEG
+  Host gitlab.oeg.vn
+    HostName gitlab.oeg.vn
+    Port 50022
+    User git
+    IdentityFile ~/.ssh/gitlab-oeg
+    IdentitiesOnly yes
 
 # Hiển thị public key để copy lên GitHub/GitLab
 echo -e "${GREEN}📋 Public key GitHub:${NC}"
@@ -59,11 +79,17 @@ cat "$GITHUB_KEY.pub"
 echo -e "${GREEN}📋 Public key GitLab:${NC}"
 cat "$GITLAB_KEY.pub"
 
+echo -e "${GREEN}📋 Public key GitLab OEG:${NC}"
+cat "$GITLAB_OEG_KEY.pub"
+
 # Kiểm tra kết nối
 echo -e "${GREEN}✅ Kiểm tra kết nối SSH GitHub:${NC}"
 ssh -T git@github.com || echo "👉 Hãy thêm public key vào GitHub trước."
 
 echo -e "${GREEN}✅ Kiểm tra kết nối SSH GitLab:${NC}"
 ssh -T git@gitlab.com || echo "👉 Hãy thêm public key vào GitLab trước."
+
+echo -e "${GREEN}✅ Kiểm tra kết nối SSH GitLab:${NC}"
+ssh -T git@gitlab.oeg.vn || echo "👉 Hãy thêm public key vào GitLab trước."
 
 echo -e "${GREEN}🎉 Hoàn tất! Hãy dán các public key vào GitHub và GitLab để hoàn tất quá trình kết nối.${NC}"
