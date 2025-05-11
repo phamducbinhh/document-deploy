@@ -6,9 +6,18 @@
 # Exit on error
 set -e
 
+# Function to check if command succeeded
+check_command() {
+  if [ $? -ne 0 ]; then
+    echo "Error: $1 failed. Please check the output above for details."
+    exit 1
+  fi
+}
+
 # Print header
 echo "================================================"
 echo "    Frappe/ERPNext Version-15 Setup Script      "
+echo "    With Raven Communication App                "
 echo "    For Ubuntu 24.04 LTS                        "
 echo "================================================"
 
@@ -101,31 +110,33 @@ echo -e "\n[15/19] Installing frappe-bench..."
 sudo -H pip3 install frappe-bench --break-system-packages
 
 # Validate installation
-echo -e "\n[16/19] Validating bench installation..."
+echo -e "\n[16/20] Validating bench installation..."
 bench --version
+check_command "Bench installation"
 
 # Initialize frappe bench
-echo -e "\n[17/19] Initializing frappe bench with version-15..."
+echo -e "\n[17/20] Initializing frappe bench with version-15..."
 bench init frappe-bench --frappe-branch version-15
 
 cd frappe-bench/
 
 # Create a new site
 read -p "Enter your site name (e.g., mysite.local): " sitename
-echo -e "\n[18/19] Creating new site: $sitename..."
+echo -e "\n[18/20] Creating new site: $sitename..."
 bench new-site "$sitename"
 bench --site "$sitename" add-to-hosts
 
-# Install ERPNext
-echo -e "\n[19/19] Installing ERPNext version-15..."
-bench get-app erpnext --branch version-15
-bench --site "$sitename" install-app erpnext
+# Install Raven app
+echo -e "\n[20/20] Installing Raven app..."
+bench get-app https://github.com/The-Commit-Company/raven.git
+bench --site "$sitename" install-app raven
 
 echo -e "\n================================================"
 echo "    Installation Complete!                        "
 echo "================================================"
 echo "You can now start the Frappe server with: bench start"
 echo "Access your ERPNext site at: http://$sitename:8000"
+echo "Raven has been installed for your communication needs"
 echo "NOTE: For production use, additional setup is recommended."
 echo "      See the Frappe documentation for production deployment."
 echo "================================================"
