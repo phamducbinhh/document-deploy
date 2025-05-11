@@ -26,6 +26,7 @@ echo "================================================"
 echo "    Frappe/ERPNext Version-15 Setup Script      "
 echo "    With Raven Communication App                "
 echo "    For Ubuntu 24.04 LTS                        "
+echo "    (Developer Edition)                         "
 echo "================================================"
 
 # Update system packages
@@ -140,8 +141,25 @@ bench --site "$sitename" add-to-hosts
 
 # Install Raven app
 echo -e "\n[20/20] Installing Raven app..."
-bench get-app --branch v2.0.3 https://github.com/The-Commit-Company/raven.git
-bench --site "$sitename" install-app raven
+bench get-app https://github.com/The-Commit-Company/raven
+bench --site "$sitename" install-app raven --verbose
+
+# Enable developer mode and disable CSRF for development
+echo -e "\n[21/22] Enabling developer settings..."
+read -p "Do you want to enable developer mode? (y/n): " enable_dev_mode
+if [[ "$enable_dev_mode" =~ ^[Yy]$ ]]; then
+  echo "Enabling developer mode globally..."
+  bench set-config -g developer_mode 1
+  check_command "Enable developer mode"
+fi
+
+echo -e "\n[22/22] Configuring CSRF settings..."
+read -p "Do you want to disable CSRF for development? (y/n): " disable_csrf
+if [[ "$disable_csrf" =~ ^[Yy]$ ]]; then
+  echo "Disabling CSRF for site $sitename..."
+  bench --site "$sitename" set-config ignore_csrf 1
+  check_command "Disable CSRF"
+fi
 
 echo -e "\n================================================"
 echo "    Installation Complete!                        "
@@ -151,7 +169,20 @@ echo "Access your ERPNext site at: http://$sitename:8000"
 echo "Login with:"
 echo "  Username: Administrator"
 echo "  Password: $admin_password (as specified during setup)"
+echo ""
+echo "Development Settings:"
+if [[ "$enable_dev_mode" =~ ^[Yy]$ ]]; then
+  echo "  ✓ Developer mode: ENABLED"
+else
+  echo "  ✗ Developer mode: DISABLED"
+fi
+if [[ "$disable_csrf" =~ ^[Yy]$ ]]; then
+  echo "  ✓ CSRF protection: DISABLED for development"
+else
+  echo "  ✗ CSRF protection: ENABLED"
+fi
+echo ""
 echo "Raven has been installed for your communication needs"
-echo "NOTE: For production use, additional setup is recommended."
+echo "NOTE: For production use, different settings are recommended."
 echo "      See the Frappe documentation for production deployment."
 echo "================================================"
