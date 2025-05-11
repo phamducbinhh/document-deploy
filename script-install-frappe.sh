@@ -142,7 +142,7 @@ bench --site "$sitename" add-to-hosts
 # Install Raven app
 echo -e "\n[20/20] Installing Raven app..."
 bench get-app https://github.com/The-Commit-Company/raven
-bench --site "$sitename" install-app raven --verbose
+bench --site "$sitename" install-app raven
 
 # Enable developer mode and disable CSRF for development
 echo -e "\n[21/22] Enabling developer settings..."
