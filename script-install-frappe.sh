@@ -1,7 +1,14 @@
 #!/bin/bash
 # Frappe/ERPNext Version-15 Installation Script for Ubuntu 24.04 LTS
-# This script automates the installation process of Frappe/ERPNext version 15
+# This script automates the installation process of Frappe/ERPNext version 15 with Raven
 # Based on the guide provided
+
+# Check if script is run as root
+if [ "$(id -u)" -eq 0 ]; then
+  echo "Error: This script should not be run as root or with sudo."
+  echo "Please run as a regular user. The script will use sudo when needed."
+  exit 1
+fi
 
 # Exit on error
 set -e
@@ -52,7 +59,7 @@ echo -e "\n[7/19] Configuring MariaDB securely..."
 echo "NOTE: You will need to answer the prompts during mysql_secure_installation:"
 echo "  - Press ENTER for current password (none)"
 echo "  - Type Y to switch to unix_socket authentication"
-echo "  - Type Y to change the root password (and enter a secure password)"
+echo "  - Type Y to change the root password (and set it to something you'll remember for site creation)"
 echo "  - Type Y to remove anonymous users"
 echo "  - Type Y to disallow root login remotely"
 echo "  - Type Y to remove test database"
@@ -122,13 +129,18 @@ cd frappe-bench/
 
 # Create a new site
 read -p "Enter your site name (e.g., mysite.local): " sitename
+read -sp "Enter MariaDB root password: " mariadb_password
+echo ""
+read -sp "Enter site admin password (default: admin): " admin_password
+admin_password=${admin_password:-admin}
 echo -e "\n[18/20] Creating new site: $sitename..."
-bench new-site "$sitename"
+bench new-site "$sitename" --mariadb-root-password "$mariadb_password" --admin-password "$admin_password"
+check_command "Site creation"
 bench --site "$sitename" add-to-hosts
 
 # Install Raven app
 echo -e "\n[20/20] Installing Raven app..."
-bench get-app https://github.com/The-Commit-Company/raven.git
+bench get-app --branch v2.0.3 https://github.com/The-Commit-Company/raven.git
 bench --site "$sitename" install-app raven
 
 echo -e "\n================================================"
@@ -136,6 +148,9 @@ echo "    Installation Complete!                        "
 echo "================================================"
 echo "You can now start the Frappe server with: bench start"
 echo "Access your ERPNext site at: http://$sitename:8000"
+echo "Login with:"
+echo "  Username: Administrator"
+echo "  Password: $admin_password (as specified during setup)"
 echo "Raven has been installed for your communication needs"
 echo "NOTE: For production use, additional setup is recommended."
 echo "      See the Frappe documentation for production deployment."
