@@ -50,11 +50,16 @@ sudo apt-get install -y software-properties-common
 sudo apt-get install -y mariadb-server
 check_command "MariaDB installation"
 
-# Check MariaDB status
-echo "Checking MariaDB status..."
-sudo systemctl status mariadb
-echo "Setting up MariaDB security settings..."
-echo "NOTE: You will be prompted to set the root password and other security settings"
+# Configure MariaDB securely (this part will require user interaction)
+echo -e "\n[7/19] Configuring MariaDB securely..."
+echo "NOTE: You will need to answer the prompts during mysql_secure_installation:"
+echo "  - Press ENTER for current password (none)"
+echo "  - Type Y to switch to unix_socket authentication"
+echo "  - Type Y to change the root password (and set it to something you'll remember for site creation)"
+echo "  - Type Y to remove anonymous users"
+echo "  - Type Y to disallow root login remotely"
+echo "  - Type Y to remove test database"
+echo "  - Type Y to reload privilege tables"
 sudo mysql_secure_installation
 
 # STEP 6: Install MySQL database development files
@@ -144,19 +149,18 @@ check_command "Frappe bench initialization"
 cd frappe-bench/
 
 # STEP 14 install ERPNext latest version in bench & frappe
-echo "STEP 14: Installing ERPNext..."
-bench get-app erpnext --branch version-15
-check_command "ERPNext installation"
+# echo "STEP 14: Installing ERPNext..."
+# bench get-app erpnext --branch version-15
+# check_command "ERPNext installation"
 
 # STEP 15 install hrms latest version in bench & frappe
-echo "STEP 15: Installing hrms..."
-bench get-app hrms --branch version-15
-check_command "hrms installation"
+# echo "STEP 15: Installing hrms..."
+# bench get-app hrms --branch version-15
+# check_command "hrms installation"
 
 # STEP 16 install raven latest version in bench & frappe
 echo "STEP 16: Installing raven..."
 bench get-app https://github.com/The-Commit-Company/raven
-bench install-app raven
 check_command "raven installation"
 
 # STEP 17: Create a new site with React.js
@@ -166,6 +170,7 @@ echo "bench --site react.test add-to-hosts"
 echo "bench set-config -g developer_mode 1"
 echo "bench --site react.test set-config ignore_csrf 1"
 echo "bench use react.test"
+bench install-app raven
 check_command "Site creation"
 echo "==============================================="
 echo "Frappe installation completed successfully!"
