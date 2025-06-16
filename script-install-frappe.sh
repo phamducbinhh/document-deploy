@@ -148,19 +148,8 @@ check_command "Frappe bench initialization"
 
 cd frappe-bench/
 
-# STEP 14 install ERPNext latest version in bench & frappe
-# echo "STEP 14: Installing ERPNext..."
-# bench get-app erpnext --branch version-15
-# check_command "ERPNext installation"
-
-# STEP 15 install hrms latest version in bench & frappe
-# echo "STEP 15: Installing hrms..."
-# bench get-app hrms --branch version-15
-# check_command "hrms installation"
-
-# STEP 16 install raven latest version in bench & frappe
 echo "STEP 16: Installing raven..."
-bench get-app https://github.com/The-Commit-Company/raven
+bench get-app https://github.com/huyapja/nextConnect.git
 check_command "raven installation"
 
 # STEP 17: Create a new site with React.js
