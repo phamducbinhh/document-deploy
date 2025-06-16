@@ -36,7 +36,6 @@ echo -e "${GREEN}⚙️ Cấu hình file ~/.ssh/config...${NC}"
 touch "$CONFIG_FILE"
 chmod 600 "$CONFIG_FILE"
 
-cat > "$CONFIG_FILE" << EOF
 # GitHub
 Host github.com
   HostName github.com
