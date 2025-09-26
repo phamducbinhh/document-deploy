@@ -1,0 +1,78 @@
+0) Chuẩn bị VPS (1 lần)
+# đăng nhập bằng user dev (hoặc tạo nếu chưa có)
+sudo apt update
+sudo apt install -y ca-certificates curl gnupg git build-essential ufw
+
+# firewall chỉ cần mở web
+sudo ufw allow OpenSSH
+sudo ufw allow 'Nginx Full'
+sudo ufw enable
+sudo ufw status
+
+1) Cài & bảo mật MySQL
+sudo apt install -y mysql-server
+mysql --version
+sudo mysql_secure_installation
+
+
+Trả lời khuyến nghị:
+
+Validate password component: n (hoặc y nếu muốn)
+
+Remove anonymous users: y
+
+Disallow root login remotely: y
+
+Remove test database: y
+
+Reload privilege tables: y
+
+1.1) Tạo DB & user cho app
+sudo mysql
+
+
+Trong MySQL:
+
+CREATE DATABASE protected_app CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+
+CREATE USER 'appuser'@'localhost'
+IDENTIFIED WITH mysql_native_password BY 'Your@Strong#Pass123';
+
+GRANT ALL PRIVILEGES ON protected_app.* TO 'appuser'@'localhost';
+FLUSH PRIVILEGES;
+EXIT;
+
+
+Không dùng root cho ứng dụng.
+
+2) Cài Node.js + PM2
+curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash -
+sudo apt install -y nodejs
+node -v && npm -v
+
+sudo npm i -g pm2@latest
+pm2 -v
+
+3) Chuẩn bị thư mục & log
+mkdir -p /home/dev/app-production/protected-room-be
+sudo mkdir -p /var/log/protected-app
+sudo chown -R dev:dev /home/dev/app-production/protected-room-be /var/log/protected-app
+
+4) Lấy code, cài deps, build
+cd /home/dev/app-production/protected-room-be
+# (bạn đã git clone sẵn)
+npm ci || npm install
+npm run build       # nếu TypeScript → tạo dist/
+
+5) Tạo .env (production)
+cat > .env << 'EOF'
+# Server
+PORT=5000
+CLIENT_URL=https://quanlynhatro.grpnext.id.vn
+
+# DB (BE + DB cùng VPS)
+DB_HOST=127.0.0.1
+DB_PORT=3306
+DB_NAME=protected_app
+DB_USER=appuser
+DB_PASSWORD=Your@Strong#Pass123
