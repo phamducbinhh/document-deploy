@@ -1,0 +1,73 @@
+# Update hệ thống
+sudo apt update && sudo apt upgrade -y
+
+# Cài NodeJS & npm (nếu chưa có)
+sudo apt install -y nodejs npm
+
+# Cài Nginx
+sudo apt install -y nginx
+
+# Cài Certbot để cấp SSL
+sudo apt install -y certbot python3-certbot-nginx
+
+# Mở tường lửa cho Nginx
+sudo ufw allow 'Nginx Full'
+sudo ufw status
+
+cd /home/dev/app-production/protected-room-fe
+
+# Cài dependencies
+npm ci || npm install
+
+# Build production
+npm run build
+
+#Copy file build sang web root
+
+/home/dev/app-production/protected-room-fe/build/client
+
+sudo mkdir -p /var/www/quanlynhatro.grpnext.id.vn
+
+sudo cp -R /home/dev/app-production/protected-room-fe/build/client/* /var/www/quanlynhatro.grpnext.id.vn/
+
+sudo chown -R www-data:www-data /var/www/quanlynhatro.grpnext.id.vn
+
+#Tạo file cấu hình Nginx
+sudo nano /etc/nginx/sites-available/quanlynhatro.grpnext.id.vn
+
+server {
+    listen 80;
+    listen [::]:80;
+    server_name quanlynhatro.grpnext.id.vn;
+
+    root /var/www/quanlynhatro.grpnext.id.vn;
+    index index.html;
+
+    # Cache cho assets
+    location ~* \.(?:js|css|png|jpg|jpeg|gif|svg|ico|woff2?)$ {
+        expires 1y;
+        add_header Cache-Control "public, immutable";
+        try_files $uri =404;
+    }
+
+    # Không cache HTML
+    location = /index.html {
+        add_header Cache-Control "no-cache";
+    }
+
+    # SPA fallback (React Router)
+    location / {
+        try_files $uri $uri/ /index.html;
+    }
+
+    # gzip
+    gzip on;
+    gzip_min_length 1024;
+    gzip_types text/plain text/css application/json application/javascript application/xml application/rss+xml image/svg+xml;
+}
+
+sudo ln -s /etc/nginx/sites-available/quanlynhatro.grpnext.id.vn /etc/nginx/sites-enabled/
+sudo nginx -t
+sudo systemctl reload nginx
+
+curl -I http://quanlynhatro.grpnext.id.vn
