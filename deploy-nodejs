@@ -1,0 +1,71 @@
+#!/usr/bin/env bash
+set -Eeuo pipefail
+
+### ====== CONFIG (đổi cho phù hợp) ======
+APP_DIR="/home/dev/app-production/protected-room-be"
+PM2_APP_NAME="protected-app-backend"
+BRANCH="master"                   # hoặc "master"
+PORT="5000"
+HEALTHCHECK_PATH="/api/health"  # endpoint kiểm tra sống
+
+RUN_MIGRATIONS=true             # đặt false nếu không muốn chạy migrate
+RUN_SEEDS=false                 # đặt true nếu muốn seed sau migrate
+### ====== /CONFIG ======
+
+log(){ echo "[$(date +'%F %T')] $*"; }
+
+log "==> Start deploy $PM2_APP_NAME"
+cd "$APP_DIR"
+
+log "==> Git pull ($BRANCH)"
+git fetch origin
+CURRENT_BRANCH=$(git rev-parse --abbrev-ref HEAD)
+if [ "$CURRENT_BRANCH" != "$BRANCH" ]; then
+  git checkout "$BRANCH"
+fi
+git pull --rebase --autostash origin "$BRANCH"
+
+log "==> Install dependencies"
+if [ -f package-lock.json ]; then
+  npm ci
+else
+  npm install
+fi
+
+log "==> Build"
+if npm run | grep -qE '(^| )build( |:)'; then
+  npm run build
+else
+  log "No build script found, skip."
+fi
+
+if [ "$RUN_MIGRATIONS" = true ]; then
+  log "==> DB Migrate"
+  if npx --no-install sequelize-cli version >/dev/null 2>&1; then
+    npx sequelize-cli db:migrate --env production
+    if [ "$RUN_SEEDS" = true ]; then
+      npx sequelize-cli db:seed:all --env production
+    fi
+  elif npm run | grep -qE '(^| )(migrate|migrate:prod)( |:)'; then
+    npm run migrate || npm run migrate:prod
+  else
+    log "sequelize-cli/migrate script not found, skip."
+  fi
+fi
+
+log "==> PM2 reload"
+pm2 describe "$PM2_APP_NAME" >/dev/null 2>&1 || pm2 start ecosystem.config.js
+pm2 reload "$PM2_APP_NAME" --update-env
+pm2 save
+
+log "==> Healthcheck"
+if command -v curl >/dev/null 2>&1; then
+  sleep 2
+  if curl -fsS "http://127.0.0.1:${PORT}${HEALTHCHECK_PATH}" >/dev/null; then
+    log "Healthcheck OK"
+  else
+    log "WARNING: Healthcheck failed at http://127.0.0.1:${PORT}${HEALTHCHECK_PATH}"
+  fi
+fi
+
+log "==> Done. Deployed commit: $(git rev-parse --short HEAD)"
