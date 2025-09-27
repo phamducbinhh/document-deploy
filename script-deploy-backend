@@ -1,0 +1,36 @@
+#!/bin/bash
+
+# Cấu hình
+APP_DIR="/home/dev/app-production/protected-room-be"     # Thay đổi đường dẫn project
+APP_NAME="protected-app-backend"             # Tên app trong pm2
+
+echo "🚀 Bắt đầu deploy ứng dụng Node.js..."
+
+# B1: Vào thư mục project
+cd $APP_DIR || { echo "❌ Không tìm thấy thư mục $APP_DIR"; exit 1; }
+
+# B2: Pull code mới nhất
+echo "📥 Pull code mới nhất..."
+git reset --hard
+git pull origin main
+
+# B3: Cài dependencies
+echo "📦 Cài đặt dependencies..."
+npm install --production
+
+# B4: Build project
+echo "🔨 Build project..."
+npm run build
+
+# B5: Restart / Reload với PM2
+echo "♻️ Restart ứng dụng với PM2..."
+if pm2 list | grep -q $APP_NAME; then
+    pm2 reload $APP_NAME
+else
+    pm2 start npm --name "$APP_NAME" -- run start
+fi
+
+# B6: Lưu lại config PM2 (tự động restart khi server reboot)
+pm2 save
+
+echo "✅ Deploy thành công!"
