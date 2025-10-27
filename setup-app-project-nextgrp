@@ -1,0 +1,110 @@
+#!/bin/bash
+
+set -e
+
+check_command() {
+	if [ $? -ne 0 ]; then
+		echo "❌ $1 failed!"
+		exit 1
+	else
+		echo "✅ $1 completed!"
+	fi
+}
+
+# STEP 13: Initialize frappe bench from custom repo
+echo "STEP 13: Initializing frappe bench (folder: nextgrp-bench) from custom frappe repo..."
+bench init nextgrp-bench \
+  --frappe-path https://github.com/huyapja/frappe.git \
+  --frappe-branch version-15 \
+  --python python3
+check_command "Frappe bench initialization"
+
+cd nextgrp-bench/
+
+# STEP 14: Create new site nextgrp.dev
+echo "STEP 14: Creating site 'nextgrp.dev'..."
+bench new-site nextgrp.dev
+check_command "Site creation"
+
+# STEP 15: Add site to hosts
+echo "STEP 15: Adding site to hosts..."
+bench --site nextgrp.dev add-to-hosts
+check_command "Add-to-hosts"
+
+# STEP 16: Get app nextauth
+echo "STEP 16: Installing app 'nextauth'..."
+bench get-app git@github.com:huyapja/nextAuth.git --branch develop
+check_command "nextauth installation"
+
+# STEP 17: Get app nextgrp
+echo "STEP 17: Installing app 'nextgrp'..."
+bench get-app git@github.com:huyapja/nextGrp.git --branch develop
+check_command "nextgrp installation"
+
+# STEP 18: Get app mtp
+echo "STEP 18: Installing app 'mtp'..."
+bench get-app git@github.com:huyapja/nextfront.git
+check_command "mtp installation"
+
+# STEP 19: Get app nextconnect
+echo "STEP 19: Installing app 'nextconnect'..."
+bench get-app git@github.com:huyapja/nextgrp-nextConnect.git
+check_command "nextconnect installation"
+
+# STEP 20: Get app drive
+echo "STEP 20: Installing app 'drive'..."
+bench get-app git@github.com:huyapja/nextgrp_drive.git
+check_command "drive installation"
+
+# STEP 20.1: Get app nextcommune
+echo "STEP 20.1: Installing app 'nextcommune'..."
+bench get-app git@github.com:huyapja/nextCommune.git
+check_command "nextcommune installation"
+
+# STEP 20.2: Get app nextprovince
+#echo "STEP 20.2: Installing app 'nextprovince'..."
+#bench get-app git@github.com:huyapja/nextProvince.git
+#check_command "nextprovince installation"
+
+bench use nextgrp.dev
+
+# STEP 21: Install all apps on site
+echo "STEP 21: Installing apps on site 'nextgrp.dev'..."
+bench install-app nextauth
+check_command "Installed: nextauth"
+
+bench install-app nextgrp
+check_command "Installed: nextgrp"
+
+bench install-app mtp
+check_command "Installed: mtp"
+
+bench install-app drive
+check_command "Installed: drive"
+
+bench install-app raven
+check_command "Installed: nextconnect"
+
+# bench install-app nextcommune
+# check_command "Installed: nextcommune"
+
+bench install-app nextprovince
+check_command "Installed: nextprovince"
+
+# STEP 22: Set configs
+echo "STEP 22: Setting developer configs..."
+bench set-config -g developer_mode 1
+bench --site nextgrp.dev set-config ignore_csrf 1
+check_command "Config set"
+
+echo "==============================================="
+echo "🎉 Frappe setup completed in folder 'nextgrp-bench' with site 'nextgrp.dev' and apps:"
+echo "    ✔ frappe (from huyapja repo)"
+echo "    ✔ nextauth"
+echo "    ✔ nextgrp"
+echo "    ✔ mtp"
+echo "    ✔ nextconnect"
+echo "    ✔ drive"
+echo "    ✔ nextcommune"
+echo "    ✔ nextprovince"
+echo "==============================================="
